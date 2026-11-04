@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Open Graph & Telegram Link Preview Meta Tags -->
+  <title>{{ brand_name }} - ከአስተማማኝ ሻጮች በቀጥታ ወደ ቤትዎ | Doorstep Delivery Marketplace</title>
+  <meta name="description" content="በአስተማማኝ መንገድ እቃዎችን ይፈልጉ፣ ይዘዙ እና ቤትዎ ድረስ አስመጥተው አይተው ከፍለው ይቀበሉ። ቤቴ ድረስ (Bete Dires)">
+  <meta property="og:title" content="{{ meta_title or brand_name }}">
+  <meta property="og:description" content="{{ meta_desc or 'በአስተማማኝ መንገድ እቃዎችን ይፈልጉ፣ ይዘዙ እና ቤትዎ ድረስ አስመጥተው አይተው ከፍለው ይቀበሉ።' }}">
+  <meta property="og:image" content="{{ meta_image or '/static/logo.png' }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bete Dires (ቤቴ ድረስ)">
+  <link rel="icon" type="image/png" href="/static/logo.png">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/static/store.css?v=2.3">
+  <style>
+    /* Critical styling for theme toggle pill */
+    .theme-toggle {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      background: rgba(255, 255, 255, 0.14) !important;
+      border: 1px solid rgba(255, 255, 255, 0.28) !important;
+      color: #ffffff !important;
+      padding: 4px 12px !important;
+      border-radius: 9999px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      outline: none !important;
+      box-shadow: none !important;
+      transition: all 0.2s ease !important;
+      user-select: none !important;
+      line-height: 1.2 !important;
+    }
+    .theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.25) !important;
+      border-color: #f59e0b !important;
+      transform: translateY(-1px);
+    }
+    [data-theme="dark"] .theme-toggle {
+      background: rgba(245, 158, 11, 0.18) !important;
+      border-color: rgba(245, 158, 11, 0.45) !important;
+      color: #fde68a !important;
+    }
+    [data-theme="dark"] .theme-toggle:hover {
+      background: rgba(245, 158, 11, 0.3) !important;
+      border-color: #f59e0b !important;
+    }
+  </style>
+  <script>
+    window.BeteDiresTheme = {
+      get: function() {
+        return document.documentElement.getAttribute('data-theme') || 'light';
+      },
+      set: function(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        try { localStorage.setItem('betedires_theme', theme); } catch(e){}
+        this.updateUI(theme);
+      },
+      toggle: function() {
+        var next = this.get() === 'dark' ? 'light' : 'dark';
+        this.set(next);
+      },
+      updateUI: function(theme) {
+        theme = theme || this.get();
+        var isDark = (theme === 'dark');
+        var icon = isDark ? '☀️' : '🌙';
+        var isAm = (window.BeteDires && window.BeteDires.currentLang === 'am') || (!window.BeteDires && (!localStorage.getItem('betedires_lang') || localStorage.getItem('betedires_lang') === 'am'));
+        var text = isDark ? (isAm ? 'ብርሃን (Light)' : 'Light Mode') : (isAm ? 'ጨለማ (Dark)' : 'Dark Mode');
+        var iconEl = document.getElementById('theme-icon');
+        var textEl = document.getElementById('theme-text');
+        if (iconEl) iconEl.textContent = icon;
+        if (textEl) textEl.textContent = text;
+      },
+      init: function() {
+        var theme = 'light';
+        try {
+          var saved = localStorage.getItem('betedires_theme');
+          if (saved) {
+            theme = saved;
+          } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            theme = 'dark';
+          }
+        } catch(e) {}
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    };
+
+    // Immediate run before paint
+    window.BeteDiresTheme.init();
+  </script>
+</head>
+<body>
+
+  <!-- Admin Bar (visible if admin is authenticated) -->
+  {% if is_admin %}
+  <div class="admin-top-bar">
+    <div>
+      🛡️ <strong>Admin Mode Active:</strong> You are logged in as Store Administrator.
+    </div>
+    <div>
+      <a href="/admin">⚙️ Open Admin Dashboard</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Top Psychological Trust Ticker -->
+  <div class="top-ticker">
+    <div class="ticker-container">
+      <div class="ticker-items">
+        <span class="ticker-badge">
+          <span>🛡️</span>
+          <span data-i18n="payOnDeliveryTitle">አይተው ይክፈሉ</span>:
+          <strong data-i18n="guaranteeText">እቃውን ቤትዎ አይተው እስኪያረጋግጡ ምንም ክፍያ አይከፍሉም</strong>
+        </span>
+        <span class="ticker-badge">
+          <span>⚡</span>
+          <strong data-i18n="doorstepTitle">ቤቴ ድረስ አቅርቦት</strong>:
+          <span>አዲስ አበባ፣ ባህር ዳር እና ጎንደር ብቻ (Addis Ababa, Bahir Dar & Gondar)</span>
+        </span>
+      </div>
+      <div class="ticker-right">
+        <button id="theme-toggle-btn" class="theme-toggle" type="button" title="Toggle Theme" aria-label="Toggle Dark/Light Mode" onclick="window.BeteDiresTheme.toggle()">
+          <span id="theme-icon">🌙</span>
+          <span id="theme-text">Dark Mode</span>
+        </button>
+        <button id="lang-toggle-btn" class="lang-toggle" type="button">
+          <span>🌐</span>
+          <span id="current-lang-text">English (EN)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Header & Alibaba-Style Search Box -->
+  <header class="main-header">
+    <div class="header-container">
+      <!-- Brand Logo -->
+      <a href="/" class="brand-link">
+        <img src="/static/logo.png" alt="Bete Dires Logo" class="brand-logo-img">
+        <div class="brand-text">
+          <div class="brand-title">
+            BETE DIRES <span class="amharic-title">ቤቴ ድረስ</span>
+          </div>
+          <div class="brand-tagline" data-i18n="brandTagline">
+            ከአስተማማኝ ሻጮች በቀጥታ ወደ ቤትዎ
+          </div>
+        </div>
+      </a>
+
+      <!-- Alibaba-Style Center Search Bar -->
+      <div class="alibaba-search-box">
+        <select id="search-cat-select" class="search-cat-select">
+          <option value="All" data-i18n="allCategories">ሁሉም ምድቦች</option>
+          <option value="Electronics">Electronics (ኤሌክትሮኒክስ)</option>
+          <option value="Furniture">Furniture (ፈርኒቸር)</option>
+          <option value="Clothing">Clothing (ልብስ እና ጫማ)</option>
+          <option value="Cosmetics">Cosmetics (ኮስሞቲክስ)</option>
+          <option value="Vehicles">Vehicles (መኪና)</option>
+          <option value="House/Rent">House/Rent (ቤት እና ኪራይ)</option>
+          <option value="Others">Others (የተለያዩ እቃዎች)</option>
+        </select>
+
+        <input 
+          type="text" 
+          id="search-input" 
+          class="search-input-field" 
+          placeholder="እቃዎችን ይፈልጉ..."
+          data-i18n-placeholder="searchPlaceholder"
+          autocomplete="off"
+        >
+
+        <select id="search-loc-select" class="search-loc-select">
+          <option value="All" data-i18n="allLocations">ሁሉም ከተሞች</option>
+          <option value="Addis Ababa">Addis Ababa (አዲስ አበባ)</option>
+          <option value="Bahir Dar">Bahir Dar (ባህር ዳር)</option>
+          <option value="Gondar">Gondar (ጎንደር)</option>
+        </select>
+
+        <button type="button" id="search-submit-btn" class="search-submit-btn">
+          <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <span data-i18n="searchBtn">ፈልግ</span>
+        </button>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <a href="https://t.me/{{ admin_username }}" target="_blank" class="telegram-direct-btn">
+          <svg style="width: 17px; height: 17px;" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+          </svg>
+          <span>Admin</span>
+        </a>
+
+        <!-- Cart Button -->
+        <button id="cart-header-btn" class="cart-header-btn" title="Open Selected Items Drawer">
+          <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          <span data-i18n="cartBtn">የተመረጡ እቃዎች</span>
+          <span id="cart-badge-count" class="cart-badge-count">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Categories & Trending Keywords Ribbon -->
+  <nav class="nav-ribbon">
+    <div class="nav-ribbon-container">
+      <div class="categories-strip">
+        <button class="cat-pill active" data-category="All">
+          <span>🏢</span>
+          <span data-i18n="allCategories">ሁሉም ምድቦች</span>
+          <span class="cat-count">{{ items|length }}</span>
+        </button>
+        <button class="cat-pill" data-category="Electronics">
+          <span>📱</span>
+          <span>Electronics (ኤሌክትሮኒክስ)</span>
+          <span class="cat-count">{{ category_counts.get('Electronics', 0) }}</span>
+        </button>
+        <button class="cat-pill" data-category="Furniture">
+          <span>🛋️</span>
+          <span>Furniture (ፈርኒቸር)</span>
+          <span class="cat-count">{{ category_counts.get('Furniture', 0) }}</span>
+        </button>
+        <button class="cat-pill" data-category="Clothing">
+          <span>👗</span>
+          <span>Clothing (ልብስ እና ጫማ)</span>
+          <span class="cat-count">{{ category_counts.get('Clothing', 0) }}</span>
+        </button>
+        <button class="cat-pill" data-category="Cosmetics">
+          <span>💄</span>
+          <span>Cosmetics (ኮስሞቲክስ)</span>
+          <span class="cat-count">{{ category_counts.get('Cosmetics', 0) }}</span>
+        </button>
+        <button class="cat-pill" data-category="Vehicles">
+          <span>🚗</span>
+          <span>Vehicles (መኪና)</span>
+          <span class="cat-count">{{ category_counts.get('Vehicles', 0) }}</span>
+        </button>
+        <button class="cat-pill" data-category="House/Rent">
+          <span>🏠</span>
+          <span>House/Rent (ቤት እና ኪራይ)</span>
+          <span class="cat-count">{{ category_counts.get('House/Rent', 0) }}</span>
+        </button>
+        <button class="cat-pill" data-category="Others">
+          <span>📦</span>
+          <span>Others (የተለያዩ እቃዎች)</span>
+          <span class="cat-count">{{ category_counts.get('Others', 0) }}</span>
+        </button>
+      </div>
+
+      <!-- House / Real Estate Sub-Filter Bar (Shown when House/Rent is selected) -->
+      <div class="house-subfilter-bar" id="house-subfilter-bar" style="display: none;">
+        <div class="house-subfilter-label">
+          <span>🏠</span>
+          <span data-i18n="houseTypeLabel">የቤት ዓይነት፡</span>
+        </div>
+        <div class="house-subfilter-pills">
+          <button type="button" class="house-sub-pill active" data-house-type="All">
+            <span data-i18n="allProperties">ሁሉም ቤቶች (All)</span>
+          </button>
+          <button type="button" class="house-sub-pill" data-house-type="buy">
+            <span>🏷️</span>
+            <span data-i18n="houseForSale">የሚሸጥ / መግዛት (Buy)</span>
+          </button>
+          <button type="button" class="house-sub-pill" data-house-type="rent">
+            <span>🔑</span>
+            <span data-i18n="houseForRent">የሚከራይ / ኪራይ (Rent)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Popular Keywords -->
+      <div class="popular-tags-strip" id="popular-tags-strip" role="region" aria-label="Trending search keywords">
+        <strong data-i18n="trendingLabel">🔥 ተወዳጅ ቃላት (Trending):</strong>
+        <button type="button" class="quick-tag" data-type="keyword" data-keyword="iPhone" data-synonyms="iphone,phone,samsung,ስልክ,ሞባይል">
+          <span>iPhone</span>
+          <span class="tag-close" aria-hidden="true">&times;</span>
+        </button>
+        <button type="button" class="quick-tag" data-type="keyword" data-keyword="ሶፋ" data-synonyms="ሶፋ,sofa,ሳሎን">
+          <span>ሶፋ (Sofa)</span>
+          <span class="tag-close" aria-hidden="true">&times;</span>
+        </button>
+        <button type="button" class="quick-tag" data-type="keyword" data-keyword="ማቀዝቀዣ" data-synonyms="ማቀዝቀዣ,ፍሪጅ,fridge,refrigerator">
+          <span>ማቀዝቀዣ (Fridge)</span>
+          <span class="tag-close" aria-hidden="true">&times;</span>
+        </button>
+        <button type="button" class="quick-tag" data-type="keyword" data-keyword="ጠረጴዛ" data-synonyms="ጠረጴዛ,ጠረፔዛ,ጠረንጴዛ,table,desk">
+          <span>ጠረጴዛ (Table)</span>
+          <span class="tag-close" aria-hidden="true">&times;</span>
+        </button>
+        <button type="button" class="quick-tag" data-type="location" data-location="Addis Ababa" data-synonyms="addis ababa,አዲስ አበባ,addis">
+          <span>Addis Ababa (አዲስ አበባ)</span>
+          <span class="tag-close" aria-hidden="true">&times;</span>
+        </button>
+        <button type="button" class="quick-tag" data-type="location" data-location="Bahir Dar" data-synonyms="bahir dar,ባህር ዳር,bahirdar">
+          <span>Bahir Dar (ባህር ዳር)</span>
+          <span class="tag-close" aria-hidden="true">&times;</span>
+        </button>
+        <button type="button" class="quick-tag" data-type="location" data-location="Gondar" data-synonyms="gondar,ጎንደር">
+          <span>Gondar (ጎንደር)</span>
+          <span class="tag-close" aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Psychological Trust Assurance Cards -->
+  <section class="trust-cards-section">
+    <div class="trust-grid">
+      <div class="trust-card">
+        <div class="trust-icon-box">🛡️</div>
+        <div class="trust-content">
+          <h4 data-i18n="payOnDeliveryTitle">አይተው ይክፈሉ</h4>
+          <p data-i18n="payOnDeliveryDesc">እቃው ቤትዎ ደርሶ በእጅዎ እስኪያዩት እና እስኪፈትሹት ድረስ ክፍያ አይፈጽሙም።</p>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon-box">💬</div>
+        <div class="trust-content">
+          <h4 data-i18n="directAdminTitle">ቀጥታ ከዋና አስተዳዳሪ ጋር</h4>
+          <p data-i18n="directAdminDesc">በቴሌግራም ከዋና አስተዳዳሪ ጋር በቀጥታ ይዘዙ። ፈጣን እና አስተማማኝ መልስ።</p>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon-box">🚚</div>
+        <div class="trust-content">
+          <h4 data-i18n="doorstepTitle">ቤቴ ድረስ አቅርቦት</h4>
+          <p data-i18n="doorstepDesc">አዲስ አበባ፣ ባህር ዳር እና ጎንደር ድረስ በልዩ ሁኔታ እናደርሳለን።</p>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon-box">✅</div>
+        <div class="trust-content">
+          <h4 data-i18n="verifiedTitle">የተረጋገጠ ጥራት እና ሻጭ</h4>
+          <p data-i18n="verifiedDesc">እያንዳንዱ እቃ ጥራቱ ተፈትሾ (አዲስ፣ ትንሽ ያገለገለ፣ ያገለገለ) በግልጽ ተቀምጧል።</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Store Layout (Sidebar Filters & Product Grid) -->
+  <main class="store-main-layout">
+    
+    <!-- Sidebar Filters -->
+    <aside class="store-sidebar">
+      
+      <!-- House / Real Estate Sub-Filter (Active when House/Rent is selected) -->
+      <div class="filter-card" id="sidebar-house-type-card" style="display: none;">
+        <div class="filter-card-header">
+          <span data-i18n="houseTypeTitle">የቤት ዓይነት (Property Type)</span>
+        </div>
+        <div class="filter-options-list">
+          <label class="filter-label">
+            <input type="radio" name="filter-house-type" value="All" checked>
+            <span data-i18n="allProperties">ሁሉም ቤቶች (All)</span>
+          </label>
+          <label class="filter-label">
+            <input type="radio" name="filter-house-type" value="buy">
+            <span data-i18n="houseForSale">🏷️ የሚሸጥ / መግዛት (Buy)</span>
+          </label>
+          <label class="filter-label">
+            <input type="radio" name="filter-house-type" value="rent">
+            <span data-i18n="houseForRent">🔑 የሚከራይ / ኪራይ (Rent)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Condition / Quality Filter -->
+      <div class="filter-card">
+        <div class="filter-card-header">
+          <span data-i18n="conditionTitle">የእቃው ሁኔታ / ጥራት</span>
+          <button type="button" class="reset-btn" id="reset-filters-btn" data-i18n="resetFilters">አፅዳ</button>
+        </div>
+        <div class="filter-options-list">
+          <label class="filter-label">
+            <input type="radio" name="filter-condition" value="All" checked>
+            <span data-i18n="allConditions">ሁሉም ሁኔታዎች</span>
+          </label>
+          <label class="filter-label">
+            <input type="radio" name="filter-condition" value="New">
+            <span data-i18n="condNew">አዲስ (Brand New)</span>
+          </label>
+          <label class="filter-label">
+            <input type="radio" name="filter-condition" value="Slightly">
+            <span data-i18n="condLikeNew">ትንሽ ያገለገለ (Like New)</span>
+          </label>
+          <label class="filter-label">
+            <input type="radio" name="filter-condition" value="Used">
+            <span data-i18n="condUsed">ያገለገለ (Used)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Price Range Filter -->
+      <div class="filter-card">
+        <div class="filter-card-header">
+          <span data-i18n="priceRangeTitle">የዋጋ ክልል (በብር)</span>
+        </div>
+        <div class="filter-options-list">
+          <label class="filter-label">
+            <input type="radio" name="filter-price" value="All" checked>
+            <span data-i18n="allPrices">ሁሉም ዋጋዎች</span>
+          </label>
+          <label class="filter-label">
+            <input type="radio" name="filter-price" value="under10k">
+            <span data-i18n="under10k">ከ 10,000 ብር በታች</span>
+          </label>
+          <label class="filter-label">
+            <input type="radio" name="filter-price" value="10k-30k">
+            <span data-i18n="from10kTo30k">10,000 - 30,000 ብር</span>
+          </label>
+          <label class="filter-label">
+            <input type="radio" name="filter-price" value="30k-60k">
+            <span data-i18n="from30kTo60k">30,000 - 60,000 ብር</span>
+          </label>
+          <label class="filter-label">
+            <input type="radio" name="filter-price" value="above60k">
+            <span data-i18n="above60k">ከ 60,000 ብር በላይ</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Verified Sellers Toggle -->
+      <div class="verified-toggle-box">
+        <label class="verified-toggle-label" for="verified-toggle">
+          <span>🛡️</span>
+          <span data-i18n="verifiedOnlyLabel">የተረጋገጡ ሻጮች ብቻ</span>
+        </label>
+        <input type="checkbox" id="verified-toggle" style="accent-color: var(--brand-green); width: 18px; height: 18px; cursor: pointer;">
+      </div>
+
+    </aside>
+
+    <!-- Main Products Area -->
+    <section class="products-area">
+      
+      <!-- Toolbar Bar -->
+      <div class="toolbar-bar">
+        <div class="results-count-text">
+          <span data-i18n="showingItems">የተገኙ እቃዎች፡</span>
+          <strong id="results-count-display">{{ items|length }}</strong>
+        </div>
+
+        <div class="toolbar-actions">
+          <label for="sort-select" style="font-size: 13px; font-weight: 600; color: var(--text-secondary);" data-i18n="sortByLabel">አደራደር፡</label>
+          <select id="sort-select" class="sort-select">
+            <option value="newest" data-i18n="sortNewest">አዳዲስ እቃዎች</option>
+            <option value="price_asc" data-i18n="sortPriceAsc">ዋጋ፡ ከዝቅተኛ ወደ ከፍተኛ</option>
+            <option value="price_desc" data-i18n="sortPriceDesc">ዋጋ፡ ከከፍተኛ ወደ ዝቅተኛ</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="products-grid" id="products-grid">
+        {% for entry in items %}
+        {% set it = entry.item %}
+        {% set serial = entry.serial %}
+        {% set raw_price = entry.raw_price %}
+        {% set cond_class = 'cond-new' if ('አዲስ' in (it.condition or '') or 'New' in (it.condition or '')) else ('cond-like-new' if ('ትንሽ' in (it.condition or '') or 'Slightly' in (it.condition or '')) else 'cond-used') %}
+        {% set name_lower = (it.name or '')|lower %}
+        {% set cond_lower = (it.condition or '')|lower %}
+        {% set is_rent = ('ኪራይ' in name_lower or 'rent' in name_lower or 'የሚከራይ' in name_lower or 'ለኪራይ' in name_lower or 'lease' in name_lower or 'ወርሃዊ' in name_lower or 'ኪራይ' in cond_lower or 'rent' in cond_lower) %}
+        {% set house_type = 'rent' if is_rent else 'buy' %}
+
+        <div 
+          class="product-card"
+          data-id="{{ it.id }}"
+          data-title="{{ it.name }}"
+          data-serial="{{ serial }}"
+          data-price="{{ raw_price }}"
+          data-category="{{ it.category or 'Others' }}"
+          data-condition="{{ it.condition or 'Good' }}"
+          data-location="{{ it.location or '' }}"
+          data-verified="{{ '1' if it.is_verified else '0' }}"
+          data-house-type="{{ house_type }}"
+        >
+          <!-- Image Wrapper -->
+          <div class="card-img-wrapper">
+            <img 
+              src="/photo/{{ it.photo_file_id }}" 
+              alt="{{ it.name }}" 
+              class="card-img" 
+              loading="lazy"
+              onerror="this.src='/static/placeholder.svg'"
+            >
+            <span class="card-badge-serial">#{{ serial }}</span>
+            <span class="card-badge-condition {{ cond_class }}">{{ it.condition or 'Inspected' }}</span>
+
+            {% if (it.category or '') == 'House/Rent' %}
+              {% if is_rent %}
+              <span class="card-badge-housetype badge-rent">🔑 የሚከራይ (Rent)</span>
+              {% else %}
+              <span class="card-badge-housetype badge-buy">🏷️ የሚሸጥ (Sale)</span>
+              {% endif %}
+            {% endif %}
+
+            {% if it.is_verified %}
+            <span class="card-badge-verified">
+              <svg style="width: 12px; height: 12px;" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              <span data-i18n="verifiedSellerBadge">የተረጋገጠ ሻጭ</span>
+            </span>
+            {% endif %}
+          </div>
+
+          <!-- Card Body -->
+          <div class="card-body">
+            <div class="card-cat-loc">
+              <span class="card-category-name">{{ it.category or 'Others' }}</span>
+              <span class="card-loc-pill" title="{{ it.location }}">
+                <span>📍</span>
+                <span>{{ it.location or 'Ethiopia' }}</span>
+              </span>
+            </div>
+
+            <h3 class="card-title">{{ it.name }}</h3>
+
+            <div class="card-price-box">
+              <div class="card-price">
+                <span>{{ it.price }}</span>
+                <span class="currency">ብር / ETB</span>
+              </div>
+              <div class="card-delivery-promise">
+                <span>🚚</span>
+                <span data-i18n="doorstepAvailable">ቤቴ ድረስ ይደርሳል</span>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-actions-row">
+              <button type="button" class="buy-telegram-btn" title="Buy via Telegram">
+                <svg style="width: 17px; height: 17px;" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                </svg>
+                <span data-i18n="buyViaTelegram">በቴሌግራም ይዘዙ</span>
+              </button>
+
+              <button type="button" class="add-cart-icon-btn" title="Add to Order Basket">
+                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <!-- Empty State Container -->
+        <div id="empty-state-box" class="empty-state-box" style="display: none;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h3 data-i18n="emptyTitle">ምንም የተገኘ እቃ የለም</h3>
+          <p data-i18n="emptyDesc">የፈለጉትን ቃል ቀይረው ይሞክሩ ወይም ማጣሪያዎችን ያፅዱ።</p>
+          <button type="button" id="empty-reset-btn" class="empty-reset-btn" data-i18n="resetFilters">ሁሉንም ማጣሪያዎች አፅዳ</button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Interactive Order Modal (Single Item Order) -->
+  <div id="order-modal-overlay" class="modal-overlay">
+    <div class="order-modal-dialog">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h3>
+          <span>🛍️</span>
+          <span data-i18n="modalTitle">እቃውን በቴሌግራም ይዘዙ</span>
+        </h3>
+        <button type="button" id="modal-close-btn" class="modal-close-btn" title="Close">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        
+        <!-- Product Summary Box -->
+        <div class="modal-product-summary">
+          <img id="modal-img" src="/static/placeholder.svg" alt="" class="modal-product-img">
+          <div class="modal-product-info">
+            <span id="modal-serial" class="modal-product-serial">#001 OT 001</span>
+            <h4 id="modal-title" class="modal-product-title">የእቃ ስም</h4>
+            <div id="modal-unit-price" class="modal-product-price">0 ብር</div>
+          </div>
+        </div>
+
+        <!-- 1. Quality Confirmation -->
+        <div class="order-form-group">
+          <label class="order-form-label">
+            <span data-i18n="qualityLabel">የተረጋገጠ የእቃ ጥራት / ሁኔታ፡</span>
+            <span class="subtext">100% Inspected Guarantee</span>
+          </label>
+          <div class="quality-confirm-box">
+            <div class="quality-confirm-info">
+              <span>✨</span>
+              <span id="modal-quality-badge" class="quality-tag-badge cond-like-new">ትንሽ ያገለገለ (Like New)</span>
+            </div>
+            <span style="font-size: 12px; color: #059669; font-weight: 700;">✓ የተረጋገጠ ሁኔታ</span>
+          </div>
+        </div>
+
+        <!-- 2. Delivery Destination Selector (City + Landmark) -->
+        <div class="order-form-group">
+          <label class="order-form-label" data-i18n="locationLabel">
+            የእርስዎ የመላኪያ ቦታ (Delivery Location):
+          </label>
+          <div class="location-inputs-grid">
+            <select id="order-city-select" class="order-select">
+              <option value="Addis Ababa">Addis Ababa (አዲስ አበባ)</option>
+              <option value="Bahir Dar">Bahir Dar (ባህር ዳር)</option>
+              <option value="Gondar">Gondar (ጎንደር)</option>
+            </select>
+            <input 
+              type="text" 
+              id="order-landmark-input" 
+              class="order-input" 
+              placeholder="ክፍለ ከተማ / ቀበሌ / ሰፈር / ልዩ ቦታ (ምሳሌ፡ ቦሌ መድኃኔዓለም)"
+              data-i18n-placeholder="landmarkPlaceholder"
+            >
+          </div>
+        </div>
+
+        <!-- 3. Quantity & Optional Contact -->
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px;">
+          <div class="order-form-group">
+            <label class="order-form-label" data-i18n="quantityLabel">ብዛት፡</label>
+            <div class="quantity-control-row">
+              <button type="button" id="qty-minus-btn" class="qty-btn">-</button>
+              <span id="modal-qty-display" class="qty-number-display">1</span>
+              <button type="button" id="qty-plus-btn" class="qty-btn">+</button>
+            </div>
+          </div>
+
+          <div class="order-form-group">
+            <label class="order-form-label">የእርስዎ ስልክ (Phone):</label>
+            <input 
+              type="tel" 
+              id="order-phone-input" 
+              class="order-input" 
+              placeholder="09... / 07... (አማራጭ)"
+              data-i18n-placeholder="optionalPhonePlaceholder"
+            >
+          </div>
+        </div>
+
+        <!-- 4. Total Calculation -->
+        <div class="order-total-box">
+          <span class="order-total-label" data-i18n="orderTotalLabel">አጠቃላይ የሚከፈል፡</span>
+          <span id="modal-total-amount" class="order-total-amount">0 ብር</span>
+        </div>
+
+        <!-- 5. Big Telegram Complete Button -->
+        <button type="button" id="modal-submit-telegram-btn" class="complete-telegram-order-btn">
+          <svg style="width: 22px; height: 22px;" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+          </svg>
+          <span data-i18n="completeTelegramBtn">ይዘዙ በቴሌግራም (Complete Order on Telegram)</span>
+        </button>
+
+        <p class="guarantee-note" data-i18n="guaranteeText">
+          🔒 እቃውን ቤትዎ ደርሶ አይተው እስኪያረጋግጡ ምንም ቅድመ ክፍያ አይከፍሉም!
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Shopping Cart Slide-Over Drawer -->
+  <div id="cart-drawer-overlay" class="cart-drawer-overlay">
+    <div class="cart-drawer">
+      <div class="cart-drawer-header">
+        <h3>
+          <span>🛒</span>
+          <span data-i18n="cartTitle">የእርስዎ ትዕዛዝ ዝርዝር</span>
+        </h3>
+        <button type="button" id="close-cart-btn" class="modal-close-btn">&times;</button>
+      </div>
+
+      <div id="cart-items-list" class="cart-items-list">
+        <!-- Rendered dynamically by store.js -->
+      </div>
+
+      <div class="cart-drawer-footer">
+        <div class="order-form-group">
+          <label class="order-form-label" data-i18n="locationLabel">የመላኪያ ከተማ እና ሰፈር፡</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="cart-city-select" class="order-select" style="flex: 1;">
+              <option value="Addis Ababa">Addis Ababa</option>
+              <option value="Bahir Dar">Bahir Dar</option>
+              <option value="Gondar">Gondar</option>
+            </select>
+            <input type="text" id="cart-landmark-input" class="order-input" placeholder="ሰፈር / ልዩ ቦታ" style="flex: 1.4;">
+          </div>
+        </div>
+
+        <div class="order-total-box" style="padding: 10px 14px;">
+          <span class="order-total-label">አጠቃላይ ድምር፡</span>
+          <span id="cart-drawer-total" class="order-total-amount" style="font-size: 18px;">0 ብር</span>
+        </div>
+
+        <button type="button" id="cart-checkout-btn" class="complete-telegram-order-btn">
+          <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+          </svg>
+          <span data-i18n="cartCheckoutBtn">ሁሉንም እቃዎች በቴሌግራም እዘዝ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Mobile Cart Button -->
+  <div class="floating-mobile-cart">
+    <div id="floating-cart-bubble" class="floating-cart-bubble">
+      <span>🛒</span>
+      <span data-i18n="cartBtn">ትዕዛዝ</span>
+      <span id="mobile-cart-count" class="cart-badge-count">0</span>
+    </div>
+  </div>
+
+  <!-- Native App Mobile Bottom Navigation Bar -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <button type="button" class="mobile-nav-btn active" id="mob-nav-home" title="መነሻ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+      </svg>
+      <span data-i18n="mobNavHome">መነሻ</span>
+    </button>
+
+    <button type="button" class="mobile-nav-btn" id="mob-nav-categories" title="ምድቦች">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+      </svg>
+      <span data-i18n="mobNavCategories">ምድቦች</span>
+    </button>
+
+    <button type="button" class="mobile-nav-btn" id="mob-nav-house" title="ቤትና ኪራይ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 14v5m4-9v9m4-5v5m2 2H6a2 2 0 01-2-2V7.414a2 2 0 01.586-1.414l6-6a2 2 0 012.828 0l6 6A2 2 0 0120 7.414V19a2 2 0 01-2 2z"/>
+      </svg>
+      <span data-i18n="mobNavHouse">ቤት/ኪራይ</span>
+    </button>
+
+    <button type="button" class="mobile-nav-btn" id="mob-nav-cart" title="ትዕዛዝ">
+      <div class="mobile-nav-badge-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+        </svg>
+        <span id="mob-nav-cart-count" class="mobile-nav-badge">0</span>
+      </div>
+      <span data-i18n="cartBtn">ትዕዛዝ</span>
+    </button>
+
+    <a href="https://t.me/{{ admin_username }}" target="_blank" class="mobile-nav-btn" id="mob-nav-telegram" title="ቴሌግራም">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+      </svg>
+      <span>ቴሌግራም</span>
+    </a>
+  </nav>
+
+  <!-- Store Footer -->
+  <footer class="store-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>
+          <img src="/static/logo.png" style="width: 28px; height: 28px; border-radius: 50%;" alt="">
+          <span>BETE DIRES</span>
+          <span style="color: var(--brand-gold);">ቤቴ ድረስ</span>
+        </h3>
+        <p>
+          ከአስተማማኝ ሻጮች በቀጥታ ወደ ቤትዎ። እቃዎችን በነፃነት ይፈልጉ፣ በቴሌግራም በቀጥታ ከአድሚን ጋር ይዘዙ፣ ቤትዎ ደርሶ አይተው ከፍለው ይቀበሉ።
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>ምድቦች (Categories)</h4>
+        <ul>
+          <li><a href="/?category=Electronics">Electronics (ኤሌክትሮኒክስ)</a></li>
+          <li><a href="/?category=Furniture">Furniture (ፈርኒቸር)</a></li>
+          <li><a href="/?category=Clothing">Clothing (ልብስ እና ጫማ)</a></li>
+          <li><a href="/?category=Cosmetics">Cosmetics (ኮስሞቲክስ)</a></li>
+          <li><a href="/?category=Vehicles">Vehicles (መኪና)</a></li>
+          <li><a href="/?category=House/Rent">House/Rent (ቤት እና ኪራይ)</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>የደንበኛ ዋስትና</h4>
+        <ul>
+          <li><span>✓ አይተው ይክፈሉ (Pay on Doorstep)</span></li>
+          <li><span>✓ የተረጋገጡ ሻጮች (Verified Sellers)</span></li>
+          <li><span>✓ ቀጥታ የአድሚን ድጋፍ (Admin Escrow)</span></li>
+          <li><span>✓ ፈጣን የቤት አቅርቦት (Doorstep Delivery)</span></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>ቀጥታ ግንኙነት</h4>
+        <ul>
+          <li><span>📢 Telegram Hub: {{ channel_id }}</span></li>
+          <li><span>👤 Telegram Admin: @{{ admin_username }}</span></li>
+          <li><a href="/login" style="color: #94a3b8; font-size: 11.5px; margin-top: 10px; display: inline-block;">🔒 Admin Portal (የአስተዳዳሪ መግቢያ)</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="footer-bottom-container">
+        <div>
+          © 2026 {{ brand_name }}. መብቱ በህግ የተጠበቀ ነው። All rights reserved.
+        </div>
+        <div>
+          Doorstep Delivery Marketplace System
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Pass Server Variables to JavaScript -->
+  <script>
+    window.BETE_DIRES_ADMIN = "{{ admin_username }}";
+  </script>
+  <!-- Store Engine -->
+  <script src="/static/store.js?v=2.3"></script>
+
+</body>
+</html>

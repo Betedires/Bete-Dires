@@ -1,0 +1,10 @@
+fastapi
+python-multipart
+uvicorn
+aiogram
+SQLAlchemy
+aiosqlite
+Pillow
+jinja2
+python-dotenv
+apscheduler

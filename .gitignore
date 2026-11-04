@@ -1,0 +1,39 @@
+# Environment variables & secrets
+.env
+telegram_forwarder/.env
+*.env.local
+
+# Telegram Userbot Sessions
+*.session
+*.session-journal
+telegram_forwarder/*.session
+telegram_forwarder/*.session-journal
+
+# SQLite Databases & Backups
+*.db
+*.db-journal
+*.db-wal
+backups/
+
+# User uploads & runtime logs
+uploads/
+secure_uploads/
+logs/
+*.log
+
+# Python virtual environment & cache
+venv/
+__pycache__/
+*.pyc
+
+# Temporary test outputs
+out.txt
+out2.txt
+tmp.txt
+out_parser.txt
+db_out.txt
+temp_image.jpg
+test_img.jpg
+scratch/
+.pytest_cache/
+*.lnk

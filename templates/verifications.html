@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Verifications - {{ brand_name|default('Bete Dires') }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans Ethiopic', sans-serif; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-[#111827] to-slate-800 text-slate-100">
+
+    <header class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">BD</div>
+            <h1 class="text-xl font-bold text-white">Seller Verification Center</h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/admin" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-semibold transition-all">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-10">
+        <div class="mb-8 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-extrabold text-white">Pending Seller Applications</h2>
+                <p class="text-sm text-slate-400">Review credentials and approve verified sellers</p>
+            </div>
+            <span class="px-3 py-1.5 rounded-full text-xs font-bold bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                {{ sellers|length }} Application(s)
+            </span>
+        </div>
+
+        {% if not sellers %}
+        <div class="glass-panel p-12 rounded-2xl text-center text-slate-500">
+            <p class="text-lg">No seller verification applications pending at this time.</p>
+        </div>
+        {% endif %}
+
+        <div class="space-y-4">
+            {% for s in sellers %}
+            <div class="glass-panel p-6 rounded-2xl border border-slate-700/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-lg font-bold text-white">{{ s.name }}</h3>
+                        {% if s.status == 'approved' %}
+                        <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Approved</span>
+                        {% elif s.status == 'rejected' %}
+                        <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">Rejected</span>
+                        {% else %}
+                        <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending Review</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-sm text-slate-400 flex flex-wrap gap-4">
+                        <span>📞 Phone: <strong class="text-slate-200">{{ s.phone }}</strong></span>
+                        {% if s.username %}
+                        <span>👤 Telegram: <strong class="text-blue-400">@{{ s.username }}</strong></span>
+                        {% endif %}
+                        <span>ID: <code class="text-slate-400 font-mono">{{ s.telegram_user_id }}</code></span>
+                        <span>Applied: {{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '' }}</span>
+                    </div>
+                    {% if s.id_photo_path %}
+                    <div class="pt-2">
+                        <a href="/admin/id_photo/{{ s.id_photo_path.split('\\')[-1].split('/')[-1] }}" target="_blank" class="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 font-semibold underline">
+                            📄 View Submitted ID Document (Private) &nearr;
+                        </a>
+                    </div>
+                    {% else %}
+                    <p class="text-xs text-slate-500 italic">No physical ID photo uploaded (Skipped by user)</p>
+                    {% endif %}
+                </div>
+
+                {% if s.status == 'pending' %}
+                <div class="flex items-center gap-3 self-end md:self-center">
+                    <form action="/action/verify_seller" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="seller_id" value="{{ s.id }}">
+                        <input type="hidden" name="decision" value="approve">
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-xs uppercase tracking-wider text-white shadow-lg shadow-emerald-600/20 transition-all">
+                            Approve Seller
+                        </button>
+                    </form>
+                    <form action="/action/verify_seller" method="POST" onsubmit="return confirm('Reject this seller?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="seller_id" value="{{ s.id }}">
+                        <input type="hidden" name="decision" value="reject">
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-rose-900/40 border border-slate-700 hover:border-rose-500/50 font-bold text-xs uppercase tracking-wider text-rose-400 transition-all">
+                            Reject
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

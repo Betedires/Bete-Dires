@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Inventory | {{ brand_name|default('Bete Dires') }} Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-10 min-h-screen">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+            <div>
+                <h1 class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                    Master Inventory
+                </h1>
+                <p class="text-slate-400 mt-2">Professional spreadsheet view of all channel assets.</p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <a href="/admin/verifications" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-2xl font-bold text-xs transition-all flex items-center gap-1.5 border border-slate-700/50">
+                    🛡 Sellers
+                </a>
+                <a href="/admin/reports" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-2xl font-bold text-xs transition-all flex items-center gap-1.5 border border-slate-700/50">
+                    🚩 Reports
+                </a>
+                <a href="/admin" class="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2.5 rounded-2xl font-bold text-xs transition-all shadow-xl flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                    Gallery Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-800/50 border-b border-slate-700/50">
+                            <th class="p-5 text-xs font-bold uppercase tracking-widest text-blue-400">Serial ID</th>
+                            <th class="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">Item Name</th>
+                            <th class="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">Category</th>
+                            <th class="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">Price</th>
+                            <th class="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">Condition</th>
+                            <th class="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">Location</th>
+                            <th class="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">Contact</th>
+                            <th class="p-5 text-xs font-bold uppercase tracking-widest text-slate-400 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/30">
+                        {% for entry in inventory %}
+                        <tr class="hover:bg-white/5 transition-colors group">
+                            <td class="p-5">
+                                <span class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-lg font-mono text-sm font-bold border border-blue-500/20 inline-flex items-center gap-1.5">
+                                    {{ entry.serial }}
+                                    {% if entry.item.is_verified %}
+                                    <span class="text-emerald-400 text-xs font-bold" title="Verified Seller">✓</span>
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="p-5">
+                                <div class="font-bold text-slate-200">{{ entry.item.name }}</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">{{ entry.item.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                            </td>
+                            <td class="p-5">
+                                <span class="text-xs px-2 py-1 rounded-md bg-slate-700/50 text-slate-300 font-medium italic">
+                                    {{ entry.item.category }}
+                                </span>
+                            </td>
+                            <td class="p-5 font-bold text-emerald-400">
+                                {{ entry.item.price }}
+                            </td>
+                            <td class="p-5 text-slate-300 text-sm">
+                                {{ entry.item.condition }}
+                            </td>
+                            <td class="p-5 text-slate-400 text-sm">
+                                {{ entry.item.location }}
+                            </td>
+                            <td class="p-5">
+                                <div class="text-slate-300 font-bold text-sm">{{ entry.item.phone }}</div>
+                                <div class="text-xs text-blue-400">@{{ entry.item.username }}</div>
+                            </td>
+                            <td class="p-5 text-center">
+                                {% if entry.item.status == 'posted' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                        Posted
+                                    </span>
+                                {% elif entry.item.status == 'sold' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                                        Sold
+                                    </span>
+                                {% elif entry.item.status == 'scheduled' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                                        Scheduled
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-slate-500/10 text-slate-500 border border-slate-500/20">
+                                        Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if not inventory %}
+            <div class="p-20 text-center">
+                <div class="text-slate-500 mb-2">
+                    <svg class="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    No inventory records found.
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Footer Info -->
+        <div class="mt-6 flex justify-between items-center text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+            <div>© 2024 Gonder Gebeya Pro Suite • Inventory Console</div>
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Total: {{ inventory|length }}</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
